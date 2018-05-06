@@ -44,15 +44,15 @@ if lsof -Pi :995 -sTCP:LISTEN -t >/dev/null ; then
     exit 1
 fi
 
-if lsof -Pi :80 -sTCP:LISTEN -t >/dev/null ; then
-    echo "Error: HTTP server already running on port 80"
-    exit 1
-fi
+# if lsof -Pi :80 -sTCP:LISTEN -t >/dev/null ; then
+#     echo "Error: HTTP server already running on port 80"
+#     exit 1
+# fi
 
-if lsof -Pi :443 -sTCP:LISTEN -t >/dev/null ; then
-    echo "Error: HTTPS server already running on port 443"
-    exit 1
-fi
+# if lsof -Pi :443 -sTCP:LISTEN -t >/dev/null ; then
+#     echo "Error: HTTPS server already running on port 443"
+#     exit 1
+# fi
 
 WILDDUCK_COMMIT="56869dbba5e2bd54673408aea2cc5689b91e4725"
 ZONEMTA_COMMIT="v1.0.4" # zone-mta-template
@@ -99,29 +99,29 @@ echo "# Add your public key here
 " >> /home/deploy/.ssh/authorized_keys
 chown -R deploy:deploy /home/deploy
 
-# mongo
-apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 0C49F3730359A14518585931BC711F9BA15703C6
-gpg --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys 58712A2291FA4AD5
-gpg --armor --export 58712A2291FA4AD5 | apt-key add -
-echo "deb [ arch=amd64,arm64 ] http://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/3.6 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.6.list
+# # mongo
+# apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 0C49F3730359A14518585931BC711F9BA15703C6
+# gpg --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys 58712A2291FA4AD5
+# gpg --armor --export 58712A2291FA4AD5 | apt-key add -
+# echo "deb [ arch=amd64,arm64 ] http://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/3.6 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.6.list
 
-apt-get update
-apt-get -q -y install pwgen git ufw build-essential libssl-dev dnsutils python software-properties-common nginx lsb-release wget
+# apt-get update
+# apt-get -q -y install pwgen git ufw build-essential libssl-dev dnsutils python software-properties-common nginx lsb-release wget
 
-# node
-curl -sL https://deb.nodesource.com/setup_8.x | bash -
+# # node
+# curl -sL https://deb.nodesource.com/setup_8.x | bash -
 
-# Setup tor to be able to send emails to .onion network.
-# Receiving from onion is not automatically set up, you would have to
-# create a hidden servcie first and then bridge port 25
-echo 'deb http://deb.torproject.org/torproject.org xenial main
-deb-src http://deb.torproject.org/torproject.org xenial main' > /etc/apt/sources.list.d/tor.list
-gpg --keyserver keys.gnupg.net --recv A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89
-gpg --export A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89 | sudo apt-key add -
+# # Setup tor to be able to send emails to .onion network.
+# # Receiving from onion is not automatically set up, you would have to
+# # create a hidden servcie first and then bridge port 25
+# echo 'deb http://deb.torproject.org/torproject.org xenial main
+# deb-src http://deb.torproject.org/torproject.org xenial main' > /etc/apt/sources.list.d/tor.list
+# gpg --keyserver keys.gnupg.net --recv A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89
+# gpg --export A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89 | sudo apt-key add -
 
-apt-get update
+# apt-get update
 
-apt-get -q -y install mongodb-org nodejs tor deb.torproject.org-keyring
+# apt-get -q -y install mongodb-org nodejs tor deb.torproject.org-keyring
 
 NODE_PATH=`which node`
 SYSTEMCTL_PATH=`which systemctl`
@@ -131,22 +131,22 @@ DKIM_SECRET=`pwgen 12 -1`
 ZONEMTA_SECRET=`pwgen 12 -1`
 DKIM_SELECTOR=`$NODE_PATH -e 'console.log(Date().toString().substr(4, 3).toLowerCase() + new Date().getFullYear())'`
 
-$SYSTEMCTL_PATH enable mongod.service
+# $SYSTEMCTL_PATH enable mongod.service
 
-# redis
-apt-add-repository -y ppa:chris-lea/redis-server
+# # redis
+# apt-add-repository -y ppa:chris-lea/redis-server
 
 # rspamd
-CODENAME=`lsb_release -c -s`
-wget -O- https://rspamd.com/apt-stable/gpg.key | apt-key add -
-echo "deb http://rspamd.com/apt-stable/ $CODENAME main" > /etc/apt/sources.list.d/rspamd.list
-echo "deb-src http://rspamd.com/apt-stable/ $CODENAME main" >> /etc/apt/sources.list.d/rspamd.list
-apt-get update
+# CODENAME=`lsb_release -c -s`
+# wget -O- https://rspamd.com/apt-stable/gpg.key | apt-key add -
+# echo "deb http://rspamd.com/apt-stable/ $CODENAME main" > /etc/apt/sources.list.d/rspamd.list
+# echo "deb-src http://rspamd.com/apt-stable/ $CODENAME main" >> /etc/apt/sources.list.d/rspamd.list
+# apt-get update
 
-apt-get -q -y install redis-server clamav clamav-daemon
-apt-get -q -y --no-install-recommends install rspamd
+# apt-get -q -y install redis-server clamav clamav-daemon
+# apt-get -q -y --no-install-recommends install rspamd
 
-apt-get clean
+# apt-get clean
 
 node -v
 redis-server -v
@@ -215,7 +215,7 @@ chown -R deploy:deploy /opt/wildduck
 echo "[Unit]
 Description=WildDuck Mail Server
 Conflicts=cyrus.service dovecot.service
-After=mongod.service redis.service
+After=redis.service
 
 [Service]
 Environment=\"NODE_ENV=production\"
@@ -291,8 +291,9 @@ tls
 # WildDuck plugin handles recipient checking and queueing
 wildduck" > config/plugins
 
-echo "key=/etc/wildduck/certs/privkey.pem
-cert=/etc/wildduck/certs/fullchain.pem" > config/tls.ini
+cat 
+echo "key=/root/letsencrypt/etc/live/$HOSTNAME/privkey.pem
+cert=/root/letsencrypt/etc/live/$HOSTNAME/fullchain.pem" > config/tls.ini
 
 echo 'host = localhost
 port = 11333
@@ -328,7 +329,7 @@ sed -i -e "s/secret value/$SRS_SECRET/g" config/wildduck.yaml
 
 echo '[Unit]
 Description=Haraka MX Server
-After=mongod.service redis.service
+After=redis.service
 
 [Service]
 Environment="NODE_ENV=production"
@@ -469,7 +470,7 @@ chown -R deploy:deploy /opt/zone-mta
 echo '[Unit]
 Description=Zone Mail Transport Agent
 Conflicts=sendmail.service exim.service postfix.service
-After=mongod.service redis.service
+After=redis.service
 
 [Service]
 Environment="NODE_ENV=production"
@@ -542,62 +543,62 @@ WantedBy=multi-user.target' > /etc/systemd/system/wildduck-webmail.service
 
 $SYSTEMCTL_PATH enable wildduck-webmail.service
 
-#### NGINX ####
+# #### NGINX ####
 
-# Create initial certs. These will be overwritten later by Let's Encrypt certs
-mkdir -p /etc/wildduck/certs
-cd /etc/wildduck/certs
-openssl req -subj "/CN=$HOSTNAME/O=My Company Name LTD./C=US" -new -newkey rsa:2048 -days 365 -nodes -x509 -keyout privkey.pem -out fullchain.pem
+# # Create initial certs. These will be overwritten later by Let's Encrypt certs
+# mkdir -p /etc/wildduck/certs
+# cd /etc/wildduck/certs
+# openssl req -subj "/CN=$HOSTNAME/O=My Company Name LTD./C=US" -new -newkey rsa:2048 -days 365 -nodes -x509 -keyout privkey.pem -out fullchain.pem
 
-chown -R wildduck:wildduck /etc/wildduck/certs
-chmod 0700 /etc/wildduck/certs/privkey.pem
+# chown -R wildduck:wildduck /etc/wildduck/certs
+# chmod 0700 /etc/wildduck/certs/privkey.pem
 
-# Setup domain without SSL at first, otherwise acme.sh will fail
-echo "server {
-    listen 80;
+# # Setup domain without SSL at first, otherwise acme.sh will fail
+# echo "server {
+#     listen 80;
 
-    server_name $HOSTNAME;
+#     server_name $HOSTNAME;
 
-    ssl_certificate /etc/wildduck/certs/fullchain.pem;
-    ssl_certificate_key /etc/wildduck/certs/privkey.pem;
+#     ssl_certificate /etc/wildduck/certs/fullchain.pem;
+#     ssl_certificate_key /etc/wildduck/certs/privkey.pem;
 
-    # special config for EventSource to disable gzip
-    location /api/events {
-        proxy_http_version 1.1;
-        gzip off;
-        proxy_set_header X-Real-IP \$remote_addr;
-        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-        proxy_set_header HOST \$http_host;
-        proxy_set_header X-NginX-Proxy true;
-        proxy_pass http://127.0.0.1:3000;
-        proxy_redirect off;
-    }
+#     # special config for EventSource to disable gzip
+#     location /api/events {
+#         proxy_http_version 1.1;
+#         gzip off;
+#         proxy_set_header X-Real-IP \$remote_addr;
+#         proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+#         proxy_set_header HOST \$http_host;
+#         proxy_set_header X-NginX-Proxy true;
+#         proxy_pass http://127.0.0.1:3000;
+#         proxy_redirect off;
+#     }
 
-    # special config for uploads
-    location /webmail/send {
-        client_max_body_size 15M;
-        proxy_http_version 1.1;
-        proxy_set_header X-Real-IP \$remote_addr;
-        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-        proxy_set_header HOST \$http_host;
-        proxy_set_header X-NginX-Proxy true;
-        proxy_pass http://127.0.0.1:3000;
-        proxy_redirect off;
-    }
+#     # special config for uploads
+#     location /webmail/send {
+#         client_max_body_size 15M;
+#         proxy_http_version 1.1;
+#         proxy_set_header X-Real-IP \$remote_addr;
+#         proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+#         proxy_set_header HOST \$http_host;
+#         proxy_set_header X-NginX-Proxy true;
+#         proxy_pass http://127.0.0.1:3000;
+#         proxy_redirect off;
+#     }
 
-    location / {
-        proxy_http_version 1.1;
-        proxy_set_header X-Real-IP \$remote_addr;
-        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-        proxy_set_header HOST \$http_host;
-        proxy_set_header X-NginX-Proxy true;
-        proxy_pass http://127.0.0.1:3000;
-        proxy_redirect off;
-    }
-}" > "/etc/nginx/sites-available/$HOSTNAME"
-rm -rf "/etc/nginx/sites-enabled/$HOSTNAME"
-ln -s "/etc/nginx/sites-available/$HOSTNAME" "/etc/nginx/sites-enabled/$HOSTNAME"
-$SYSTEMCTL_PATH reload nginx
+#     location / {
+#         proxy_http_version 1.1;
+#         proxy_set_header X-Real-IP \$remote_addr;
+#         proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+#         proxy_set_header HOST \$http_host;
+#         proxy_set_header X-NginX-Proxy true;
+#         proxy_pass http://127.0.0.1:3000;
+#         proxy_redirect off;
+#     }
+# }" > "/etc/nginx/sites-available/$HOSTNAME"
+# rm -rf "/etc/nginx/sites-enabled/$HOSTNAME"
+# ln -s "/etc/nginx/sites-available/$HOSTNAME" "/etc/nginx/sites-enabled/$HOSTNAME"
+# $SYSTEMCTL_PATH reload nginx
 
 #### UFW ####
 
@@ -614,8 +615,8 @@ ufw --force enable
 
 curl https://get.acme.sh | sh
 
-echo 'cert="/etc/wildduck/certs/fullchain.pem"
-key="/etc/wildduck/certs/privkey.pem"' > /etc/wildduck/tls.toml
+echo "cert='/root/letsencrypt/etc/live/$HOSTNAME/fullchain.pem'
+key='/root/letsencrypt/etc/live/$HOSTNAME/privkey.pem' > /etc/wildduck/tls.toml
 
 sed -i -e "s/key=/#key=/g;s/cert=/#cert=/g" /etc/zone-mta/interfaces/feeder.toml
 echo '# @include "../../wildduck/tls.toml"' >> /etc/zone-mta/interfaces/feeder.toml
@@ -625,39 +626,38 @@ echo '#!/bin/bash
 echo "OK"' > /usr/local/bin/reload-services.sh
 chmod +x /usr/local/bin/reload-services.sh
 
-/root/.acme.sh/acme.sh --issue --nginx \
-    -d "$HOSTNAME" \
-    --key-file       /etc/wildduck/certs/privkey.pem  \
-    --fullchain-file /etc/wildduck/certs/fullchain.pem \
-    --reloadcmd     "/usr/local/bin/reload-services.sh" \
-    --force || echo "Warning: Failed to generate certificates, using self-signed certs"
+# /root/.acme.sh/acme.sh --issue --nginx \
+#     -d "$HOSTNAME" \
+#     --key-file       /etc/wildduck/certs/privkey.pem  \
+#     --fullchain-file /etc/wildduck/certs/fullchain.pem \
+#     --reloadcmd     "/usr/local/bin/reload-services.sh" \
+#     --force || echo "Warning: Failed to generate certificates, using self-signed certs"
 
-# Update site config, make sure ssl is enabled
-echo "server {
-    listen 80;
-    listen [::]:80;
-    listen 443 ssl http2;
-    listen [::]:443 ssl http2;
+# # Update site config, make sure ssl is enabled
+# echo "server {
+#     listen 80;
+#     listen [::]:80;
+#     listen 443 ssl http2;
+#     listen [::]:443 ssl http2;
 
-    server_name $HOSTNAME;
+#     server_name $HOSTNAME;
 
-    ssl_certificate /etc/wildduck/certs/fullchain.pem;
-    ssl_certificate_key /etc/wildduck/certs/privkey.pem;
+#     ssl_certificate /etc/wildduck/certs/fullchain.pem;
+#     ssl_certificate_key /etc/wildduck/certs/privkey.pem;
 
-    location / {
-        proxy_set_header X-Real-IP \$remote_addr;
-        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-        proxy_set_header HOST \$http_host;
-        proxy_set_header X-NginX-Proxy true;
-        proxy_pass http://127.0.0.1:3000;
-        proxy_redirect off;
-    }
-}" > "/etc/nginx/sites-available/$HOSTNAME"
-$SYSTEMCTL_PATH reload nginx
+#     location / {
+#         proxy_set_header X-Real-IP \$remote_addr;
+#         proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+#         proxy_set_header HOST \$http_host;
+#         proxy_set_header X-NginX-Proxy true;
+#         proxy_pass http://127.0.0.1:3000;
+#         proxy_redirect off;
+#     }
+# }" > "/etc/nginx/sites-available/$HOSTNAME"
+# $SYSTEMCTL_PATH reload nginx
 
 # update reload script for future updates
 echo "#!/bin/bash
-$SYSTEMCTL_PATH reload nginx
 $SYSTEMCTL_PATH reload wildduck
 $SYSTEMCTL_PATH restart zone-mta
 $SYSTEMCTL_PATH restart haraka
@@ -671,7 +671,6 @@ $SYSTEMCTL_PATH start wildduck
 $SYSTEMCTL_PATH start haraka
 $SYSTEMCTL_PATH start zone-mta
 $SYSTEMCTL_PATH start wildduck-webmail
-$SYSTEMCTL_PATH reload nginx
 
 cd "$INSTALLDIR"
 
@@ -739,4 +738,4 @@ curl -i -XPOST http://localhost:8080/dkim \
 echo ""
 cat "$INSTALLDIR/$MAILDOMAIN-nameserver.txt"
 echo ""
-echo "All done, open https://$HOSTNAME/ in your browser"
+echo "All done, open https://$HOSTNAME/:3000 in your browser"
